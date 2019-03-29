@@ -21,8 +21,9 @@ from NonBonded import *
 hexamer1 = PduABody()
 pentamer = PentagonBody()
 
-template = SphericalTemplate(5)
-template.plot_position()
+test = PotentialTest()
+test.plot(normal_lj)
+
 
 
 #test=potential_test()

@@ -23,14 +23,14 @@ edge_l = 2.5
 hexamer1 = PduABody(edge_length=edge_l)
 hexamer2 = PduBBody(edge_length=edge_l)
 pentamer = PentagonBody(edge_length=edge_l)
-template = SphericalTemplate(1.0)
+template = SphericalTemplate(2.0)
 BMC.filename='Mer_' + str(mer_mer)+'_Scaf_'+str(mer_scaffold)+'_'+str(rseed)
 
-sys = Lattice(pentamer, hexamer1, hexamer2, num_hex1=3, num_scaffold=4)
+sys = Lattice(pentamer, hexamer1, hexamer2, num_hex1=2, num_scaffold=8)
 
 uc = hoomd.lattice.unitcell(N=sys.num_body,
-                            a1=[20, 0, 0],
-                            a2=[0, 20, 0],
+                            a1=[25, 0, 0],
+                            a2=[0, 25, 0],
                             a3=[0, 0, sys.cell_height],
                             dimensions=3,
                             position=sys.position_list,
@@ -61,8 +61,9 @@ nl = hoomd.md.nlist.cell()
 table = hoomd.md.pair.table(width=1000, nlist=nl)
 table.pair_coeff.set(system_types, system_types, func=SoftRepulsive, rmin=0.01, rmax=3, coeff=dict(sigma=1, epsilon=1.0))
 table.pair_coeff.set('C', 'D', func=LJ_attract, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=5))
-table.pair_coeff.set('qP', 'qP', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=5, kappa=0.1))
-table.pair_coeff.set('qP', 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=-5,kappa=0.1))
+table.pair_coeff.set(['qP','C'], ['qP', 'C'], func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=5, kappa=0.9))
+table.pair_coeff.set('qN', 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=5,kappa=0.9))
+table.pair_coeff.set(['qP','C'], 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=-5,kappa=0.9))
 table.pair_coeff.set('Sc', 'Sc', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(mer_mer)))
 table.pair_coeff.set('Sc', 'Ss', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(mer_scaffold)))
 

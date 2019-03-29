@@ -1,5 +1,5 @@
 import sys
-#sys.path.append('/projects/b1030/hoomd/hoomd-2.2.0_cuda8.0/')
+sys.path.append('/projects/b1030/hoomd/hoomd-2.2.0_cuda8.0/')
 import hoomd
 import hoomd.md
 from Pentagon import PentagonBody
@@ -12,14 +12,14 @@ from SphericalTemplate import SphericalTemplate
 import os
 # Place the type R central particles
 hoomd.context.initialize("--mode=cpu");
-#rseed=os.environ['RSEED']
-#mer_mer=os.environ['MERMER']
-#mer_scaffold=os.environ['MER_TEMP']
-rseed=42
+#rseed=42
+#mer_mer = 4.0
+#mer_scaffold = 2.0
+rseed=os.environ['RSEED']
+mer_mer=os.environ['MERMER']
+mer_scaffold=os.environ['MER_TEMP']
 BMC = type('BMC', (object,), {})()
 
-mer_mer = 4.0
-mer_scaffold = 2.0
 hexamer1 = PduABody()
 hexamer2 = PduBBody()
 pentamer = PentagonBody()

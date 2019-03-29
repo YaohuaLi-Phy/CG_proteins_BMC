@@ -26,7 +26,7 @@ pentamer = PentagonBody(edge_length=edge_l)
 template = SphericalTemplate(2.0)
 BMC.filename='Mer_' + str(mer_mer)+'_Scaf_'+str(mer_scaffold)+'_'+str(rseed)
 
-sys = Lattice(pentamer, hexamer1, hexamer2, num_hex1=2, num_scaffold=8)
+sys = Lattice(pentamer, hexamer1, hexamer2,template, num_hex1=2, num_scaffold=8)
 
 uc = hoomd.lattice.unitcell(N=sys.num_body,
                             a1=[25, 0, 0],
@@ -69,13 +69,13 @@ table.pair_coeff.set('Sc', 'Ss', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(s
 
 hoomd.md.integrate.mode_standard(dt=0.004)
 rigid = hoomd.group.rigid_center()
-hoomd.md.integrate.langevin(group=rigid, kT=1.0, seed=int(rseed));
+integrator = hoomd.md.integrate.langevin(group=rigid, kT=1.0, seed=int(rseed));
 
 hoomd.analyze.log(filename=BMC.filename + ".log",
-                  quantities=['potential_energy',
+                  quantities=['temperature','potential_energy',
                               'translational_kinetic_energy',
                               'rotational_kinetic_energy'],
-                  period=10000,
+                  period=1000,
                   overwrite=True)
 
 hoomd.dump.gsd(BMC.filename+".gsd",
@@ -83,4 +83,11 @@ hoomd.dump.gsd(BMC.filename+".gsd",
                group=hoomd.group.all(),
                overwrite=True)
 
-hoomd.run(1e7)
+hoomd.run(5e6)
+
+temp_sequence=[1.25, 1.5, 1.25, 1.0]
+for temp in temp_sequence:
+    integrator.disable()
+    integrator = hoomd.md.integrate.langevin(group=rigid, kT=temp, seed=int(rseed))
+    hoomd.run(5e6)
+

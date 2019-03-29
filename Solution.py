@@ -1,7 +1,7 @@
 import numpy as np
 class Lattice(object):
 
-    def __init__(self, pentamer, hexamer, hexamer2, num_pen=1, num_hex1=2, num_hex2=1, num_scaffold=2):
+    def __init__(self, pentamer, hexamer, hexamer2,scaffold, num_pen=1, num_hex1=2, num_hex2=1, num_scaffold=2):
 
         mass_pen = 5.0
         mass_hex1 = 6.0
@@ -9,7 +9,7 @@ class Lattice(object):
         mass_scaffold = 2.0
         self.num_body = num_pen + num_hex1 + num_scaffold + num_hex2
         thickness = 3.0/2*hexamer.edge_l
-        self.cell_height = num_pen * thickness + (num_hex1 + num_hex2) * thickness + num_scaffold + 2.0
+        self.cell_height = num_pen * thickness + (num_hex1 + num_hex2) * thickness + num_scaffold*2 + 2.0
 
         base1 = np.array([1, 0, 0])
         base3 = np.array([0, 0, 1])
@@ -27,8 +27,8 @@ class Lattice(object):
             self.position_list.append(list(origin + base3*((i+num_pen+num_hex1)*thickness - self.cell_height/2.0)))
 
         for idx in range(int(num_scaffold/2)):
-            self.position_list.append(list(origin + base1 * 2.5*hexamer.edge_l + (idx-self.cell_height/2.0) * base3 * 4))
-            self.position_list.append(list(origin - base1 * 2.5*hexamer.edge_l + (idx-self.cell_height/2.0) * base3 * 4))
+            self.position_list.append(list(origin + base1 * 2.5*hexamer.edge_l + (idx-self.cell_height/2.0) * base3 * 1.3*scaffold.diameter))
+            self.position_list.append(list(origin - base1 * 2.5*hexamer.edge_l + (idx-self.cell_height/2.0) * base3 * 1.3*scaffold.diameter))
 
         self.moment_inertias = []
         for i in range(num_pen):

@@ -13,6 +13,7 @@ class SphericalTemplate(object):
         self.position = [[] for i in range(length)]
         self.rigid_count = 1
         self.type_list = ['Sc']*length
+	self.diameter = 2*radius
         points = np.multiply(self.unit_sphere(length), radius)
 
         for ind, point in enumerate(points):

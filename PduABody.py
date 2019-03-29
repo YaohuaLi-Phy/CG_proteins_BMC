@@ -6,9 +6,10 @@ from Body import Body
 class PduABody(Body):
     """ PduA protein"""
 
-    def __init__(self, edge_length=2.0):
+    def __init__(self, edge_length=3.0):
         super(PduABody, self).__init__()
         l_spacing = edge_length / 2.0
+        self.edge_l = edge_length
         height = 0.2 * edge_length
         base1 = l_spacing * np.array([0, 1, 0])
         base2 = l_spacing * np.array([np.sqrt(3) / 2.0, -0.5, 0])
@@ -31,8 +32,8 @@ class PduABody(Body):
         vertices.append(-base2)
         for i in range(len(vertices)):
             vector = (vertices[i] - vertices[i - 1])
-            self.binding_sites.append(list(2.15 * (vertices[i - 1] + vector * 0.3)))
-            self.hand_sites.append(list(2.15 * (vertices[i - 1] + vector * 0.7)))
+            self.binding_sites.append(list(edge_length * (vertices[i - 1] + vector * 0.3)))
+            self.hand_sites.append(list(edge_length * (vertices[i - 1] + vector * 0.7)))
             self.p_charge_sites.append(list(vertices[i])+0.5*base3)
             self.scaffold_sites.append(list(vertices[i]-1.2*base3))
 

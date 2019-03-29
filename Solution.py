@@ -8,7 +8,7 @@ class Lattice(object):
         mass_hex2 = 10.0
         mass_scaffold = 2.0
         self.num_body = num_pen + num_hex1 + num_scaffold + num_hex2
-        thickness = 3.0
+        thickness = 3.0/2*hexamer.edge_l
         self.cell_height = num_pen * thickness + (num_hex1 + num_hex2) * thickness + num_scaffold + 2.0
 
         base1 = np.array([1, 0, 0])
@@ -27,8 +27,8 @@ class Lattice(object):
             self.position_list.append(list(origin + base3*((i+num_pen+num_hex1)*thickness - self.cell_height/2.0)))
 
         for idx in range(int(num_scaffold/2)):
-            self.position_list.append(list(origin + base1 * 5 + (idx-self.cell_height/2.0) * base3 * 4))
-            self.position_list.append(list(origin - base1 * 5 + (idx-self.cell_height/2.0) * base3 * 4))
+            self.position_list.append(list(origin + base1 * 2.5*hexamer.edge_l + (idx-self.cell_height/2.0) * base3 * 4))
+            self.position_list.append(list(origin - base1 * 2.5*hexamer.edge_l + (idx-self.cell_height/2.0) * base3 * 4))
 
         self.moment_inertias = []
         for i in range(num_pen):

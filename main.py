@@ -12,25 +12,25 @@ from SphericalTemplate import SphericalTemplate
 import os
 # Place the type R central particles
 hoomd.context.initialize("--mode=cpu");
-#rseed=42
-#mer_mer = 4.0
-#mer_scaffold = 2.0
-rseed=os.environ['RSEED']
-mer_mer=os.environ['MERMER']
-mer_scaffold=os.environ['MER_TEMP']
+rseed=42
+mer_mer = 4.0
+mer_scaffold = 2.0
+#rseed=os.environ['RSEED']
+#mer_mer=os.environ['MERMER']
+#mer_scaffold=os.environ['MER_TEMP']
 BMC = type('BMC', (object,), {})()
-
-hexamer1 = PduABody()
-hexamer2 = PduBBody()
-pentamer = PentagonBody()
+edge_l = 2.5
+hexamer1 = PduABody(edge_length=edge_l)
+hexamer2 = PduBBody(edge_length=edge_l)
+pentamer = PentagonBody(edge_length=edge_l)
 template = SphericalTemplate(1.0)
 BMC.filename='Mer_' + str(mer_mer)+'_Scaf_'+str(mer_scaffold)+'_'+str(rseed)
 
 sys = Lattice(pentamer, hexamer1, hexamer2, num_hex1=3)
 
 uc = hoomd.lattice.unitcell(N=sys.num_body,
-                            a1=[15, 0, 0],
-                            a2=[0, 15, 0],
+                            a1=[20, 0, 0],
+                            a2=[0, 20, 0],
                             a3=[0, 0, sys.cell_height],
                             dimensions=3,
                             position=sys.position_list,
@@ -63,8 +63,8 @@ table.pair_coeff.set(system_types, system_types, func=SoftRepulsive, rmin=0.01, 
 table.pair_coeff.set('C', 'D', func=LJ_attract, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=5))
 table.pair_coeff.set('qP', 'qP', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=5, kappa=0.1))
 table.pair_coeff.set('qP', 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=-5,kappa=0.1))
-table.pair_coeff.set('Sc', 'Sc', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=mer_mer))
-table.pair_coeff.set('Sc', 'Ss', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=mer_scaffold))
+table.pair_coeff.set('Sc', 'Sc', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(mer_mer)))
+table.pair_coeff.set('Sc', 'Ss', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(mer_scaffold)))
 
 hoomd.md.integrate.mode_standard(dt=0.004)
 rigid = hoomd.group.rigid_center()

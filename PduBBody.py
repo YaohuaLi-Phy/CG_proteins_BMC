@@ -32,8 +32,8 @@ class PduBBody(Body):
         vertices.append(-base2)
         for i in range(len(vertices)):
             vector = (vertices[i] - vertices[i - 1])
-            self.binding_sites.append(list(2.15 * (vertices[i - 1] + vector * 0.3)))
-            self.hand_sites.append(list(2.15 * (vertices[i - 1] + vector * 0.7)))
+            self.binding_sites.append(list(edge_length * (vertices[i - 1] + vector * 0.3)))
+            self.hand_sites.append(list(edge_length * (vertices[i - 1] + vector * 0.7)))
             self.n_charge_sites.append(list(vertices[i])-0.5*base3)
             self.scaffold_sites.append(list(vertices[i]-1.5*base3))
 

@@ -11,13 +11,13 @@ from Solution import Lattice
 from SphericalTemplate import SphericalTemplate
 import os
 # Place the type R central particles
-hoomd.context.initialize("--mode=cpu");
-rseed=42
-mer_mer = 4.0
-mer_scaffold = 2.0
-#rseed=os.environ['RSEED']
-#mer_mer=os.environ['MERMER']
-#mer_scaffold=os.environ['MER_TEMP']
+hoomd.context.initialize("--mode=gpu");
+#rseed=42
+#mer_mer = 4.0
+#mer_scaffold = 2.0
+rseed=os.environ['RSEED']
+mer_mer=os.environ['MERMER']
+mer_scaffold=os.environ['MER_TEMP']
 BMC = type('BMC', (object,), {})()
 edge_l = 2.5
 hexamer1 = PduABody(edge_length=edge_l)
@@ -26,7 +26,7 @@ pentamer = PentagonBody(edge_length=edge_l)
 template = SphericalTemplate(1.0)
 BMC.filename='Mer_' + str(mer_mer)+'_Scaf_'+str(mer_scaffold)+'_'+str(rseed)
 
-sys = Lattice(pentamer, hexamer1, hexamer2, num_hex1=3)
+sys = Lattice(pentamer, hexamer1, hexamer2, num_hex1=3, num_scaffold=4)
 
 uc = hoomd.lattice.unitcell(N=sys.num_body,
                             a1=[20, 0, 0],
@@ -38,7 +38,7 @@ uc = hoomd.lattice.unitcell(N=sys.num_body,
                             mass=sys.mass_list,
                             moment_inertia=sys.moment_inertias,
                             orientation=sys.orientation_list)
-system = hoomd.init.create_lattice(unitcell=uc, n=[3, 3, 3])
+system = hoomd.init.create_lattice(unitcell=uc, n=[4, 5, 5])
 
 # Add constituent particles of type A and create the rods
 
@@ -68,7 +68,7 @@ table.pair_coeff.set('Sc', 'Ss', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(s
 
 hoomd.md.integrate.mode_standard(dt=0.004)
 rigid = hoomd.group.rigid_center()
-hoomd.md.integrate.langevin(group=rigid, kT=1.0, seed=rseed);
+hoomd.md.integrate.langevin(group=rigid, kT=1.0, seed=int(rseed));
 
 hoomd.analyze.log(filename=BMC.filename + ".log",
                   quantities=['potential_energy',
@@ -78,8 +78,8 @@ hoomd.analyze.log(filename=BMC.filename + ".log",
                   overwrite=True)
 
 hoomd.dump.gsd(BMC.filename+".gsd",
-               period=5e2,
+               period=1e4,
                group=hoomd.group.all(),
                overwrite=True)
 
-hoomd.run(1e6)
+hoomd.run(1e7)

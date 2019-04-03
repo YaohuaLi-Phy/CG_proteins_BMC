@@ -18,15 +18,17 @@ hoomd.context.initialize("--mode=gpu");
 rseed=os.environ['RSEED']
 mer_mer=os.environ['MERMER']
 mer_scaffold=os.environ['MER_TEMP']
+scaffold_scaffold=os.environ['TEMP_TEMP']
 BMC = type('BMC', (object,), {})()
 edge_l = 2.5
 hexamer1 = PduABody(edge_length=edge_l)
 hexamer2 = PduBBody(edge_length=edge_l)
 pentamer = PentagonBody(edge_length=edge_l)
 template = SphericalTemplate(2.0)
-BMC.filename='Mer_' + str(mer_mer)+'_Scaf_'+str(mer_scaffold)+'_'+str(rseed)
+n_hex1=3
+BMC.filename='n_hex1' + str(n_hex1)+'_Scaf_'+str(mer_scaffold)+'_'+str(rseed)
 
-sys = Lattice(pentamer, hexamer1, hexamer2,template, num_hex1=2, num_scaffold=8)
+sys = Lattice(pentamer, hexamer1, hexamer2,template, num_hex1=n_hex1, num_scaffold=3)
 
 uc = hoomd.lattice.unitcell(N=sys.num_body,
                             a1=[25, 0, 0],
@@ -60,11 +62,11 @@ rigid.create_bodies()
 nl = hoomd.md.nlist.cell()
 table = hoomd.md.pair.table(width=1000, nlist=nl)
 table.pair_coeff.set(system_types, system_types, func=SoftRepulsive, rmin=0.01, rmax=3, coeff=dict(sigma=1, epsilon=1.0))
-table.pair_coeff.set('C', 'D', func=LJ_attract, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=5))
+table.pair_coeff.set('C', 'D', func=LJ_attract, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(mer_mer)))
 table.pair_coeff.set(['qP','C'], ['qP', 'C'], func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=5, kappa=0.9))
 table.pair_coeff.set('qN', 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=5,kappa=0.9))
 table.pair_coeff.set(['qP','C'], 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=-5,kappa=0.9))
-table.pair_coeff.set('Sc', 'Sc', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(mer_mer)))
+table.pair_coeff.set('Sc', 'Sc', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(scaffold_scaffold)))
 table.pair_coeff.set('Sc', 'Ss', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(mer_scaffold)))
 
 hoomd.md.integrate.mode_standard(dt=0.004)
@@ -75,19 +77,19 @@ hoomd.analyze.log(filename=BMC.filename + ".log",
                   quantities=['temperature','potential_energy',
                               'translational_kinetic_energy',
                               'rotational_kinetic_energy'],
-                  period=1000,
+                  period=10000,
                   overwrite=True)
 
 hoomd.dump.gsd(BMC.filename+".gsd",
-               period=1e4,
+               period=2e4,
                group=hoomd.group.all(),
                overwrite=True)
 
 hoomd.run(5e6)
 
-temp_sequence=[1.25, 1.5, 1.25, 1.0]
+temp_sequence=[1.25, 1.5, 1.25, 1.0, 1.25, 1.5, 1.25, 1.0]
 for temp in temp_sequence:
     integrator.disable()
     integrator = hoomd.md.integrate.langevin(group=rigid, kT=temp, seed=int(rseed))
-    hoomd.run(5e6)
+    hoomd.run(2e6)
 

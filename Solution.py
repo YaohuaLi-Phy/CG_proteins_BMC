@@ -26,9 +26,14 @@ class Lattice(object):
         for i in range(num_hex2):
             self.position_list.append(list(origin + base3*((i+num_pen+num_hex1)*thickness - self.cell_height/2.0)))
 
-        for idx in range(int(num_scaffold/2)):
-            self.position_list.append(list(origin + base1 * 2.5*hexamer.edge_l + (idx-self.cell_height/2.0) * base3 * 1.3*scaffold.diameter))
-            self.position_list.append(list(origin - base1 * 2.5*hexamer.edge_l + (idx-self.cell_height/2.0) * base3 * 1.3*scaffold.diameter))
+        if num_scaffold % 2 == 0:
+            for idx in range(int(num_scaffold/2)):
+                self.position_list.append(list(origin + base1 * 2.5*hexamer.edge_l + (idx-self.cell_height/2.0) * base3 * 1.3*scaffold.diameter))
+                self.position_list.append(list(origin - base1 * 2.5*hexamer.edge_l + (idx-self.cell_height/2.0) * base3 * 1.3*scaffold.diameter))
+        else:
+            for idx in range(int(num_scaffold)):
+                self.position_list.append(list(origin + base1 * 2.5 * hexamer.edge_l + (
+                idx - self.cell_height / 2.0) * base3 * 1.3 * scaffold.diameter))
 
         self.moment_inertias = []
         for i in range(num_pen):

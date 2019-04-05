@@ -20,11 +20,12 @@ class PentagonBody(Body):
         #    self.body_sites.append(list(pts[i]))
         num_bead = 2
         num_stack = 2
+        self.hand_sites = []
         z_unit_vector = np.array([0, 0, -1])
         for j in range(5):
             vect = pts[j] - pts[j - 1]
             self.binding_sites.append(list(1.1*(pts[j] - 0.3*vect)))
-
+            self.hand_sites.append(list(1.1*(pts[j] - 0.7*vect)))
             for i in range(num_bead):
                 l_scale = (i + 1.0) / (float(num_bead) + 1.0)
 
@@ -40,8 +41,8 @@ class PentagonBody(Body):
                 self.body_sites.append(list(r_scale * pts[i] + z_unit_vector*height))
                 self.body_sites.append(list(r_scale * pts[i] - z_unit_vector*height))
 
-        self.hand_sites = []
+
         self.all_sites = self.body_sites + self.hand_sites + self.binding_sites
-        self.type_list = ['B'] * len(self.body_sites) + ['C'] * len(self.hand_sites) + ['D'] * len(self.binding_sites)
+        self.type_list = ['B'] * len(self.body_sites) + ['C1'] * len(self.hand_sites) + ['D1'] * len(self.binding_sites)
         self.moment_of_inertia = [1, 1, 2]
 

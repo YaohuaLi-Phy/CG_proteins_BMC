@@ -21,7 +21,6 @@ class SphericalTemplate(object):
             #self.mass[ind] = 100
             #self.type[ind] = 'qPm'
 
-        print self.position
 
     def unit_sphere(self, n):
 

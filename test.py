@@ -18,13 +18,6 @@ from NonBonded import *
 #test_object = PentagonBody()
 #test_object.plot_position()
 
-hexamer1 = PduABody()
-pentamer = PentagonBody()
 
-test = PotentialTest()
-test.plot(normal_lj)
-
-
-
-#test=potential_test()
-#test.plot(LJ_attract)
+test=PotentialTest(4.0)
+test.plot(yukawa_lj)

@@ -31,19 +31,27 @@ def Yukawa(r, rmin, rmax, kappa, A):
     F = V*(kappa*r)/r
     return (V, F)
 
+def yukawa_lj(r, rmin, rmax, sigma, epsilon, kappa, A):
+    V1 = Yukawa(r, rmin, rmax, kappa, A)[0]
+    F1 = Yukawa(r, rmin, rmax, kappa, A)[1]
+    V2 = normal_lj(r, rmin, rmax, sigma, epsilon)[0]
+    F2 = (r, rmin, rmax, sigma, epsilon)[1]
+    V = V1+V2
+    F = F1+F2
+    return (V, F)
 
 class PotentialTest(object):
 
-    def __init__(self):
+    def __init__(self, param):
         self.plot_range = 8
         self.x = np.arange(0.2, self.plot_range, 0.02)
-
+        self.param = param
     def plot(self, funct):
-        vf = funct(self.x, 0.01, self.plot_range, 1, 3.0)
+        vf = funct(self.x, 2, self.plot_range, 1, self.param, 1.0, 2.0)
         y = vf[0]
         plt.plot(self.x, y)
-        plt.plot(self.x, vf[1])
-        plt.ylim(-15, 5)
+        #plt.plot(self.x, vf[1])
+        plt.ylim(-10, 10)
         plt.grid()
         plt.show()
 

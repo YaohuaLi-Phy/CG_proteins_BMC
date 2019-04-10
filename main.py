@@ -9,14 +9,15 @@ from NonBonded import LJ_attract
 from NonBonded import *
 from Solution import Lattice
 from SphericalTemplate import SphericalTemplate
+from PeanutTemplate import PeanutTemplate
 import os
 # Place the type R central particles
 hoomd.context.initialize("--mode=gpu");
 #rseed=42
 #mer_mer = 4.0
 #mer_scaffold = 2.0
-anneal = False
-note='q8'
+anneal = True
+note = 'q1_mer-temp2_gentle'
 rseed=os.environ['RSEED']
 mer_mer=os.environ['MERMER']
 mer_scaffold=os.environ['MER_TEMP']
@@ -30,9 +31,9 @@ a = 2.5
 template = SphericalTemplate(a)
 n_hex1=int(os.environ['N_HEX1'])
 n_scaf=int(os.environ['N_SCAF'])
-BMC.filename=str(note)+'n_hex1_' + str(n_hex1)+'_Scaf_'+str(n_scaf)+'_'+str(rseed)
+BMC.filename=str(note)+'n_hex_'+str(n_hex1)+'mer_' + str(mer_mer)+'_Scaf_'+str(n_scaf)+'_sc_'+str(scaffold_scaffold)+'_'+str(rseed)
 
-sys = Lattice(pentamer, hexamer1, hexamer2,template, num_hex1=n_hex1, num_scaffold=n_scaf)
+sys = Lattice(pentamer, hexamer1, hexamer2, template, num_hex1=n_hex1, num_scaffold=n_scaf)
 
 uc = hoomd.lattice.unitcell(N=sys.num_body,
                             a1=[25, 0, 0],
@@ -77,8 +78,8 @@ table.pair_coeff.set('C1', 'D', func=LJ_attract, rmin=0.01, rmax=3, coeff=dict(s
 table.pair_coeff.set(['qP', 'C'], ['qP', 'C'], func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=5, kappa=kp))
 table.pair_coeff.set(['qP', 'C'], 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=-5, kappa=kp))
 table.pair_coeff.set('qN', 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=5, kappa=kp))
-table.pair_coeff.set('H', 'H', func=Yukawa, rmin=0.01, rmax=4.5, coeff=dict(A=A_yuka, kappa=kp))
-table.pair_coeff.set('Sc', 'Sc', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(scaffold_scaffold)))
+# table.pair_coeff.set('H', 'H', func=Yukawa, rmin=0.01, rmax=4.5, coeff=dict(A=A_yuka, kappa=kp))
+table.pair_coeff.set('Sc', 'Sc', func=yukawa_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(scaffold_scaffold), A=1.25, kappa=kp))
 table.pair_coeff.set('Sc', 'Ss', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(mer_scaffold)))
 
 hoomd.md.integrate.mode_standard(dt=0.004)
@@ -93,17 +94,19 @@ hoomd.analyze.log(filename=BMC.filename + ".log",
                   overwrite=True)
 
 hoomd.dump.gsd(BMC.filename+".gsd",
-               period=2e4,
+               period=5e4,
                group=hoomd.group.all(),
                overwrite=True)
 
-hoomd.run(5e6)
+hoomd.run(1e7)
 
 if anneal:
-    temp_sequence=[1.25, 1.5, 1.25, 1.0, 1.25, 1.5, 1.25, 1.0]
+    temp_sequence=[1.1, 1.2, 1.1, 1.0, 1.1, 1.2, 1.3, 1.2, 1.0]
     for temp in temp_sequence:
         integrator.disable()
         integrator = hoomd.md.integrate.langevin(group=rigid, kT=temp, seed=int(rseed))
         hoomd.run(2e6)
 
 hoomd.run(2e7)
+
+hoomd.dump.gsd(BMC.filename+"final-frame.gsd", group=hoomd.group.all(), overwrite=True, period=None)

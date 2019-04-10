@@ -32,12 +32,11 @@ def Yukawa(r, rmin, rmax, kappa, A):
     return (V, F)
 
 def yukawa_lj(r, rmin, rmax, sigma, epsilon, kappa, A):
-    V1 = Yukawa(r, rmin, rmax, kappa, A)[0]
-    F1 = Yukawa(r, rmin, rmax, kappa, A)[1]
-    V2 = normal_lj(r, rmin, rmax, sigma, epsilon)[0]
-    F2 = (r, rmin, rmax, sigma, epsilon)[1]
-    V = V1+V2
-    F = F1+F2
+    x6 = (float(sigma) / r) ** 6
+    xmax6 = (sigma / float(rmax)) ** 6
+
+    V = epsilon * ((x6 ** 2 - x6) - (xmax6 ** 2 - xmax6)) + A*np.exp(-kappa*r)/r
+    F = epsilon / r * (12 * x6 ** 2 - 6 * x6) + A*np.exp(-kappa*r)/r*(kappa*r)/r
     return (V, F)
 
 class PotentialTest(object):
@@ -47,7 +46,7 @@ class PotentialTest(object):
         self.x = np.arange(0.2, self.plot_range, 0.02)
         self.param = param
     def plot(self, funct):
-        vf = funct(self.x, 2, self.plot_range, 1, self.param, 1.0, 2.0)
+        vf = funct(self.x, 2, self.plot_range, 1, 3, 1.0, 1.5)
         y = vf[0]
         plt.plot(self.x, y)
         #plt.plot(self.x, vf[1])

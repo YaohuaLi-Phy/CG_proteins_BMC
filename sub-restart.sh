@@ -12,12 +12,12 @@ module load ruby
 
 export RSEED=$RANDOM
 export MERMER=4.0
-export MER_TEMP=4.0
-export TEMP_TEMP=4.0
+export MER_TEMP=2.0
+export TEMP_TEMP=3.0
 export N_HEX1=3
 export N_SCAF=2
 
 cd $PBS_O_WORKDIR
 
-mpirun -n 1 python main.py 
+mpirun -n 1 python restart.py 
 

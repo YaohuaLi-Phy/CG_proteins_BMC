@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append('/projects/b1030/hoomd/hoomd-2.2.0_cuda8.0/')
 import hoomd
 import hoomd.md
@@ -9,20 +10,36 @@ from NonBonded import LJ_attract
 from NonBonded import *
 from Solution import Lattice
 from SphericalTemplate import SphericalTemplate
-from PeanutTemplate import PeanutTemplate
 import os
-# Place the type R central particles
-hoomd.context.initialize("--mode=gpu");
-#rseed=42
-#mer_mer = 4.0
-#mer_scaffold = 2.0
-anneal = True
-note = 'scan_smallsc_'
-rseed=os.environ['RSEED']
-mer_mer=os.environ['MERMER']
-mer_scaffold=os.environ['MER_TEMP']
-scaffold_scaffold=os.environ['TEMP_TEMP']
+import time
+import random
+
+from mpi4py import MPI
+
+mpi_rank = MPI.COMM_WORLD.Get_rank()
+
+
 BMC = type('BMC', (object,), {})()
+BMC.replica_exchange_time = 5e4
+BMC.replicas = [0.0, 0.25, 0.5, 0.75]
+time.sleep(3*mpi_rank)
+print('context for rank: ' + str(mpi_rank))
+hoomd.context.initialize("--mode=gpu --nrank=1")
+BMC.W_time = 5e6
+BMC.replica_stages = int(BMC.W_time / BMC. replica_exchange_time)
+BMC.potentials = [0.0 for c in BMC.replicas]
+BMC.bias_potentials = [0.0 for c in BMC.replicas]
+Bias_alpha = 0.33
+
+note = 'replica'
+rseed=os.environ['RSEED']
+try:
+    mer_mer = os.environ['MERMER']
+except:
+    mer_mer = 4.0
+mer_scaffold = os.environ['MER_TEMP']
+scaffold_scaffold = os.environ['TEMP_TEMP']
+
 edge_l = 2.5
 hexamer1 = PduABody(edge_length=edge_l)
 hexamer2 = PduBBody(edge_length=edge_l)
@@ -79,7 +96,6 @@ table.pair_coeff.set('C1', 'D', func=LJ_attract, rmin=0.01, rmax=3, coeff=dict(s
 table.pair_coeff.set(['qP', 'C'], ['qP', 'C'], func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=5, kappa=kp))
 table.pair_coeff.set(['qP', 'C'], 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=-5, kappa=kp))
 table.pair_coeff.set('qN', 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=5, kappa=kp))
-# table.pair_coeff.set('H', 'H', func=Yukawa, rmin=0.01, rmax=4.5, coeff=dict(A=A_yuka, kappa=kp))
 table.pair_coeff.set('Sc', 'Sc', func=yukawa_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(scaffold_scaffold), A=1.25, kappa=kp))
 table.pair_coeff.set('Sc', 'Ss', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(mer_scaffold)))
 
@@ -87,27 +103,53 @@ hoomd.md.integrate.mode_standard(dt=0.004)
 rigid = hoomd.group.rigid_center()
 integrator = hoomd.md.integrate.langevin(group=rigid, kT=1.0, seed=int(rseed))
 
-hoomd.analyze.log(filename=BMC.filename + ".log",
-                  quantities=['temperature','potential_energy',
+logger = hoomd.analyze.log(filename=BMC.filename + '_rank_'+str(BMC.replicas[mpi_rank])+".log",
+                  quantities=['temperature', 'potential_energy',
                               'translational_kinetic_energy',
                               'rotational_kinetic_energy'],
                   period=10000,
                   overwrite=True)
+hoomd.run(1e6)  # equilibriate
+integrator.disable()
+num_replicas = len(BMC.replicas)
+exchanges_prob = np.zeros(num_replicas - 1)
+BMC.kT = 1.0 + BMC.replicas[mpi_rank]
+for stage in range(BMC.replica_stages):
+    integrator = hoomd.md.integrate.langevin(group=rigid, kT=BMC.kT, seed=int(rseed))
+    dumper = hoomd.dump.gsd(BMC.filename + '_rank_'+str(BMC.replicas[mpi_rank]) + ".gsd",
+               period=1000, group=hoomd.group.all(), overwrite=False)
+    hoomd.run(int(BMC.replica_exchange_time))
+    BMC.potential = logger.query('potential_energy')
+    dumper.disable()
+    MPI.COMM_WORLD.Barrier()
+    BMC.potential_arr = MPI.COMM_WORLD.gather(BMC.potential)
 
-hoomd.dump.gsd(BMC.filename+".gsd",
-               period=5e4,
-               group=hoomd.group.all(),
-               overwrite=True)
+    # decide whether to do the replica exchange
+    if mpi_rank == 0:
+        zero_index = BMC.replicas.index(0.0)
+        sorted_replicas_idx = np.argsort(BMC.replicas)
 
-hoomd.run(1e7)
+        for i in range(num_replicas - 1):
+            idx_i = sorted_replicas_idx[i]
+            idx_j = sorted_replicas_idx[i+1]
+            beta_i = 1 / (1.0 + BMC.replicas[idx_i])
+            beta_j = 1 / (1.0 + BMC.replicas[idx_j])
+            de = (beta_i - beta_j) * (BMC.potential_arr[idx_i] - BMC.potential_arr[idx_j])
+            exchanges_prob[i] = min([1.0, np.exp(-de)])
 
-if anneal:
-    temp_sequence=[1.1, 1.2, 1.1, 1.0, 1.1, 1.2, 1.3, 1.2, 1.0]
-    for temp in temp_sequence:
-        integrator.disable()
-        integrator = hoomd.md.integrate.langevin(group=rigid, kT=temp, seed=int(rseed))
-        hoomd.run(2e6)
+        idx = random.randint(0, num_replicas - 1)
+        rnum = random.uniform(0.0, 1.0)
+        swapA = sorted_replicas_idx[idx]
+        swapB = sorted_replicas_idx[idx + 1]
+        print 'probability of swapping ' + str(BMC.replicas[swapA]) + ' with ' + str(BMC.replicas[swapB]) \
+              + ' is ' + str(exchanges_prob[idx])
+        if rnum < exchanges_prob[idx]:
+            print 'swapping ' + str(BMC.replicas[swapA]) + ' with ' + str(BMC.replicas[swapB])
+            BMC.replicas[swapA], BMC.replicas[swapB] = BMC.replicas[swapB], BMC.replicas[swapA]
 
-hoomd.run(2e7)
+    BMC.replicas = MPI.COMM_WORLD.bcast(BMC.replicas, root=0)
+    MPI.COMM_WORLD.Barrier()
 
-hoomd.dump.gsd(BMC.filename+"final-frame.gsd", group=hoomd.group.all(), overwrite=True, period=None)
+if mpi_rank == 0:
+    hoomd.dump.gsd(BMC.filename+"final-frame.gsd", group=hoomd.group.all(), overwrite=True, period=None)
+

@@ -23,7 +23,7 @@ kp = 1.1
 z_q = 1.0
 A_yuka = z_q**2 * lB * (np.exp(kp*a)/(1+kp*a))**2
 
-temp = PeanutTemplate(2.5)
-temp.plot_position()
-#test=PotentialTest(10.0)
-#test.plot(yukawa_lj)
+#temp = PeanutTemplate(2.5)
+#temp.plot_position()
+test=PotentialTest(10.0)
+test.plot(LJ_attract)

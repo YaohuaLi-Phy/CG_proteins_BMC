@@ -46,10 +46,10 @@ class PotentialTest(object):
         self.x = np.arange(0.2, self.plot_range, 0.02)
         self.param = param
     def plot(self, funct):
-        vf = funct(self.x, 2, self.plot_range, 1, 3, 1.0, 1.5)
+        vf = funct(self.x, 2, self.plot_range, 1.5, 3)
         y = vf[0]
         plt.plot(self.x, y)
-        #plt.plot(self.x, vf[1])
+        plt.plot(self.x, vf[1])
         plt.ylim(-10, 10)
         plt.grid()
         plt.show()

@@ -38,7 +38,8 @@ hoomd.analyze.log(filename="log-output.log",
                               'translational_kinetic_energy',
                               'rotational_kinetic_energy'],
                   period=100,
-                  overwrite=True);
+                  overwrite=True,
+                  phase=-1);
 hoomd.run(1e3);
 integrator.disable()
 for i in range(10):

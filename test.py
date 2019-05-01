@@ -25,5 +25,5 @@ A_yuka = z_q**2 * lB * (np.exp(kp*a)/(1+kp*a))**2
 
 #temp = PeanutTemplate(2.5)
 #temp.plot_position()
-test=PotentialTest(10.0)
+test=PotentialTest(4.0)
 test.plot(LJ_attract)

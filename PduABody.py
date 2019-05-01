@@ -6,11 +6,12 @@ from Body import Body
 class PduABody(Body):
     """ PduA protein"""
 
-    def __init__(self, edge_length=3.0):
+    def __init__(self, edge_length=3.0, angle=0):
         super(PduABody, self).__init__()
         l_spacing = edge_length / 2.0
         self.edge_l = edge_length
         height = 0.2 * edge_length
+        radius_factor = 1 - angle * 0.82 / np.sqrt(3)
         base1 = l_spacing * np.array([0, 1, 0])
         base2 = l_spacing * np.array([np.sqrt(3) / 2.0, -0.5, 0])
         base3 = height * np.array([0, 0, 1])
@@ -19,7 +20,7 @@ class PduABody(Body):
                 position = base1 * i + base2 * j
                 if -2.01 * l_spacing < position[1] - 0.5 * position[0] < 2.01 * l_spacing:
                     self.body_sites.append(tuple(position + base3))
-                    self.body_sites.append(tuple(0.9*position - 1.1*base3))
+                    self.body_sites.append(tuple(radius_factor * position - 1.1*base3))
 
         self.hand_sites = []
         vertices = []

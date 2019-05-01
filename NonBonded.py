@@ -46,7 +46,7 @@ class PotentialTest(object):
         self.x = np.arange(0.2, self.plot_range, 0.02)
         self.param = param
     def plot(self, funct):
-        vf = funct(self.x, 2, self.plot_range, 1.5, 3)
+        vf = funct(self.x, 2, self.plot_range, 1.15, self.param)
         y = vf[0]
         plt.plot(self.x, y)
         plt.plot(self.x, vf[1])

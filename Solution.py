@@ -51,3 +51,13 @@ class Lattice(object):
             self.orientation_list.append([1, 0, 0, 0])
         self.num_stacks = num_hex1*2 + 1 + num_hex2
 
+
+class TestLattice(object):
+    def __init__(self, num_mers, mer_size=5):
+        self.box_l = mer_size+5
+        self.num_body = num_mers
+        self.position_list=[[0,0,0]]
+        self.type_name_list = ['R']
+        self.mass_list=[1.0]
+        self.moment_inertias=[[1,1,1]]
+        self.orientation_list=[[1,0,0,0]]

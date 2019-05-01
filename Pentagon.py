@@ -6,12 +6,13 @@ from Body import Body
 class PentagonBody(Body):
     """PduN pentemer"""
 
-    def __init__(self, edge_length=2.0):
+    def __init__(self, edge_length=2.0, angle=0):
         super(PentagonBody, self).__init__()
         self.body_sites.append([0, 0, 0])
         edge = edge_length
         height = 0.3*edge_length
         radius = edge / (2 * np.sin(np.pi / 5))
+        radius_factor = 1 - angle * 0.6 * np.tan(np.pi / 5)
         pts = np.array([[0, radius, 0], [edge * np.cos(np.pi / 5), radius - edge * np.sin(np.pi / 5), 0],
                         [radius * np.sin(np.pi / 5), -radius * np.cos(np.pi / 5), 0],
                         [-radius * np.sin(np.pi / 5), -radius * np.cos(np.pi / 5), 0],
@@ -39,7 +40,7 @@ class PentagonBody(Body):
             r_scale = 1.0 / (j + 1.0)
             for i in range(len(pts)):
                 self.body_sites.append(list(r_scale * pts[i] + z_unit_vector*height))
-                self.body_sites.append(list(r_scale * pts[i] - z_unit_vector*height))
+                self.body_sites.append(list(r_scale * radius_factor * pts[i] - z_unit_vector*height))
 
 
         self.all_sites = self.body_sites + self.hand_sites + self.binding_sites

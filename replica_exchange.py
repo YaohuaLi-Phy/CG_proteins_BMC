@@ -63,10 +63,11 @@ system = hoomd.init.create_lattice(unitcell=uc, n=[4, 4, 4])
 
 # Add constituent particles of type A and create the rods
 
-added_types = ['A', 'B', 'C', 'D', 'qP', 'qN', 'C1', 'D1', 'Ss']
-system_types = ['R', 'P', 'R2'] + added_types
+added_types = ['A', 'B', 'C', 'D', 'qP', 'qN', 'C1', 'D1', 'Ss'] # types to be added to the system
+system_types = ['R', 'P', 'R2'] + added_types  # types to define forcefield
 if n_scaf > 0:
     system_types += ['H', 'Sc']
+    added_types += ['Sc']
 for new_type in added_types:
     system.particles.types.add(new_type)
 

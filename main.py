@@ -15,16 +15,16 @@ from PeanutTemplate import PeanutTemplate
 import os
 
 # Place the type R central particles
-hoomd.context.initialize("--mode=cpu");
+hoomd.context.initialize("--mode=gpu");
 # rseed=42
 # mer_mer = 4.0
 # mer_scaffold = 2.0
 anneal = True
-note = 'noSC_LJG_pent1.1'
-rseed = 42#os.environ['RSEED']
-mer_mer = 4#os.environ['MERMER']
-mer_scaffold = 4#os.environ['MER_TEMP']
-scaffold_scaffold = 3#os.environ['TEMP_TEMP']
+note = 'LJG_pent1.1'
+rseed = os.environ['RSEED']
+mer_mer = os.environ['MERMER']
+mer_scaffold = os.environ['MER_TEMP']
+scaffold_scaffold = os.environ['TEMP_TEMP']
 BMC = type('BMC', (object,), {})()
 edge_l = 2.5
 BMC.angle = 15 * np.pi / 180
@@ -33,8 +33,8 @@ hexamer2 = PduBBody(edge_length=edge_l, angle=BMC.angle)
 pentamer = PentagonBody(edge_length=edge_l, angle=BMC.angle)
 a = 2.5
 template = SphericalTemplate(a)
-n_hex1 = 2#int(os.environ['N_HEX1'])
-n_scaf = 2#int(os.environ['N_SCAF'])
+n_hex1 = int(os.environ['N_HEX1'])
+n_scaf = int(os.environ['N_SCAF'])
 try:
     n_hex2 = int(os.environ['N_HEX2'])
 except:

@@ -8,7 +8,8 @@ class PentagonBody(Body):
 
     def __init__(self, edge_length=2.0, angle=0):
         super(PentagonBody, self).__init__()
-        self.body_sites.append([0, 0, 0])
+        #self.body_sites.append([0, 0, 0])
+        #self.n_charge_sites.append([0, 0, 0])
         edge = edge_length
         height = 0.3*edge_length
         radius = edge / (2 * np.sin(np.pi / 5))
@@ -41,9 +42,9 @@ class PentagonBody(Body):
             for i in range(len(pts)):
                 self.body_sites.append(list(r_scale * pts[i] + z_unit_vector*height))
                 self.body_sites.append(list(r_scale * radius_factor * pts[i] - z_unit_vector*height))
+                self.n_charge_sites.append(list(r_scale * radius_factor * pts[i]))
 
-
-        self.all_sites = self.body_sites + self.hand_sites + self.binding_sites
-        self.type_list = ['B'] * len(self.body_sites) + ['C1'] * len(self.hand_sites) + ['D1'] * len(self.binding_sites)
+        self.all_sites = self.body_sites + self.hand_sites + self.binding_sites + self.n_charge_sites
+        self.type_list = ['B'] * len(self.body_sites) + ['C1'] * len(self.hand_sites) + ['D1'] * len(self.binding_sites) + ['qN']*len(self.n_charge_sites)
         self.moment_of_inertia = [1, 1, 2]
 

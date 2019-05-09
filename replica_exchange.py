@@ -21,10 +21,10 @@ BMC = type('BMC', (object,), {})()
 BMC.replica_exchange_time = 5e4
 a=1.02
 BMC.replicas = [1.0, a, a**2, a**3, a**4, a**5, a**6, a**7]
-time.sleep(3 * mpi_rank)
+time.sleep(2 * mpi_rank)
 print('context for rank: ' + str(mpi_rank))
 hoomd.context.initialize("--mode=gpu --nrank=1")
-BMC.W_time = 3e7
+BMC.W_time = 6e7
 BMC.replica_stages = int(BMC.W_time / BMC.replica_exchange_time)
 note = 'temper_all'
 rseed = os.environ['RSEED']
@@ -44,10 +44,14 @@ a = 2.5
 template = SphericalTemplate(a)
 n_hex1 = int(os.environ['N_HEX1'])
 n_scaf = int(os.environ['N_SCAF'])
+try:
+    n_hex2 = int(os.environ['N_HEX2'])
+except:
+    n_hex2 = 1
 BMC.filename = str(note) + '_ee_' + str(scaffold_scaffold) + '_eh_' + str(mer_scaffold) + '_hh_' + str(
     mer_mer) + '_' + str(rseed)
 
-sys = Lattice(pentamer, hexamer1, hexamer2, template, num_hex1=n_hex1, num_scaffold=n_scaf)
+sys = Lattice(pentamer, hexamer1, hexamer2, template, num_hex1=n_hex1, num_hex2=n_hex2, num_scaffold=n_scaf)
 
 uc = hoomd.lattice.unitcell(N=sys.num_body,
                             a1=[25, 0, 0],
@@ -63,7 +67,7 @@ system = hoomd.init.create_lattice(unitcell=uc, n=[4, 4, 4])
 
 # Add constituent particles of type A and create the rods
 
-added_types = ['A', 'B', 'C', 'D', 'qP', 'qN', 'C1', 'D1', 'Ss'] # types to be added to the system
+added_types = ['A', 'B', 'C', 'D', 'qP', 'qN', 'C1', 'D1', 'Ss']  # types to be added to the system
 system_types = ['R', 'P', 'R2'] + added_types  # types to define forcefield
 if n_scaf > 0:
     system_types += ['H', 'Sc']
@@ -92,16 +96,18 @@ nl = hoomd.md.nlist.cell()
 table = hoomd.md.pair.table(width=1000, nlist=nl)
 table.pair_coeff.set(system_types, system_types, func=SoftRepulsive, rmin=0.01, rmax=3,
                      coeff=dict(sigma=1, epsilon=1.0))
-#table.pair_coeff.set('Sc', system_types, func=SoftRepulsive, rmin=0.01, rmax=3, coeff=dict(sigma=1.5, epsilon=0.5))
-table.pair_coeff.set('C', 'D', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.15, epsilon=float(mer_mer)))
-table.pair_coeff.set('C', 'D1', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.15, epsilon=4))
-table.pair_coeff.set('C1', 'D', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.15, epsilon=4))
+table.pair_coeff.set('Sc', system_types, func=SoftRepulsive, rmin=0.01, rmax=3, coeff=dict(sigma=1.5, epsilon=0.5))
+table.pair_coeff.set('C', 'D', func=LJ_attract, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(mer_mer)))
+table.pair_coeff.set('C', 'D1', func=LJ_attract, rmin=0.01, rmax=3,
+                     coeff=dict(sigma=1.1, epsilon=(0.9 * float(mer_mer))))
+table.pair_coeff.set('C1', 'D', func=LJ_attract, rmin=0.01, rmax=3,
+                     coeff=dict(sigma=1.1, epsilon=(0.9 * float(mer_mer))))
 table.pair_coeff.set(['qP', 'C'], ['qP', 'C'], func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=5, kappa=kp))
 table.pair_coeff.set(['qP', 'C'], 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=-5, kappa=kp))
 table.pair_coeff.set('qN', 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=5, kappa=kp))
 if n_scaf>0:
-    table.pair_coeff.set('Sc', 'Sc', func=yukawa_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(scaffold_scaffold), A=1.20, kappa=kp))
-    table.pair_coeff.set('Sc', 'Ss', func=normal_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(mer_scaffold)))
+    table.pair_coeff.set('Sc', 'Sc', func=yukawa_lj, rmin=0.01, rmax=4, coeff=dict(sigma=1.5, epsilon=float(scaffold_scaffold), A=1.20, kappa=kp))
+    table.pair_coeff.set('Sc', 'Ss', func=normal_lj, rmin=0.01, rmax=4, coeff=dict(sigma=1.5, epsilon=float(mer_scaffold)))
 
 hoomd.md.integrate.mode_standard(dt=0.0004)
 rigid = hoomd.group.rigid_center()

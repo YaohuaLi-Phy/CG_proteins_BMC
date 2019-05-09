@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/projects/b1030/hoomd/hoomd-2.2.0_cuda8.0/')
+sys.path.append('/projects/b1030/hoomd/hoomd-2.5.1/')
 import hoomd
 import hoomd.md
 from Pentagon import PentagonBody
@@ -8,18 +8,18 @@ from PduBBody import PduBBody
 from NonBonded import LJ_attract
 from NonBonded import *
 from Solution import TestLattice
-from SphericalTemplate import SphericalTemplate
+from SphericalTemplate import *
 from PeanutTemplate import PeanutTemplate
 import os
 # Place the type R central particles
 hoomd.context.initialize("--mode=gpu");
 #rseed=42
 
-anneal = False
-note = 'sc_charged'
+anneal = True
+note = 'sc_rand'
 rseed=os.environ['RSEED']
 #mer_mer=os.environ['MERMER']
-#mer_scaffold=os.environ['MER_TEMP']
+mer_scaffold=os.environ['MER_TEMP']
 scaffold_scaffold=os.environ['TEMP_TEMP']
 BMC = type('BMC', (object,), {})()
 edge_l = 2.5
@@ -27,7 +27,7 @@ edge_l = 2.5
 #hexamer2 = PduBBody(edge_length=edge_l)
 #pentamer = PentagonBody(edge_length=edge_l)
 a = 2.5
-template = SphericalTemplate(a)
+template = RandomTemplate(a)
 #n_hex1=int(os.environ['N_HEX1'])
 #n_scaf=int(os.environ['N_SCAF'])
 BMC.filename=str(note)+str(scaffold_scaffold) + '_'+str(rseed)
@@ -48,7 +48,7 @@ system = hoomd.init.create_lattice(unitcell=uc, n=[5, 5, 5])
 
 # Add constituent particles of type A and create the rods
 
-added_types = ['Sc']
+added_types = ['Sc', 'qn']
 system_types = ['R'] + added_types
 for new_type in added_types:
     system.particles.types.add(new_type)
@@ -66,8 +66,11 @@ nl = hoomd.md.nlist.cell()
 table = hoomd.md.pair.table(width=1000, nlist=nl)
 table.pair_coeff.set(system_types, system_types, func=SoftRepulsive, rmin=0.01, rmax=3, coeff=dict(sigma=1, epsilon=1.0))
 table.pair_coeff.set('Sc', system_types, func=SoftRepulsive, rmin=0.01, rmax=3, coeff=dict(sigma=1.5, epsilon=0.5))
-table.pair_coeff.set('Sc', 'Sc', func=yukawa_lj, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(scaffold_scaffold), A=1.20, kappa=kp))
-
+table.pair_coeff.set('Sc', 'Sc', func=normal_lj, rmin=0.01, rmax=3,
+                         coeff=dict(sigma=1.0, epsilon=float(scaffold_scaffold)))
+table.pair_coeff.set('qn', 'qn', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=1, kappa=kp))
+#table.pair_coeff.set('Sc', 'Ss', func=normal_lj, rmin=0.01, rmax=3,
+#                         coeff=dict(sigma=1.0, epsilon=float(mer_scaffold)))
 
 hoomd.md.integrate.mode_standard(dt=0.004)
 rigid = hoomd.group.rigid_center()
@@ -88,7 +91,7 @@ hoomd.dump.gsd(BMC.filename+".gsd",
 hoomd.run(1e6)
 
 if anneal:
-    temp_sequence=[1.1, 1.2, 1.1, 1.0, 1.1, 1.2, 1.3, 1.2, 1.0]
+    temp_sequence=[1.1, 1.2, 1.3, 1.2, 1.0, 0.9, 0.8, 0.7]
     for temp in temp_sequence:
         integrator.disable()
         integrator = hoomd.md.integrate.langevin(group=rigid, kT=temp, seed=int(rseed))

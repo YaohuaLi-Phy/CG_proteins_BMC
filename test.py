@@ -20,10 +20,12 @@ from NonBonded import *
 a=0.5
 lB = 1.0
 kp = 1.1
-z_q = 1.0
+z_q = 0.8
 A_yuka = z_q**2 * lB * (np.exp(kp*a)/(1+kp*a))**2
+print A_yuka
 
 #temp = PeanutTemplate(2.5)
 #temp.plot_position()
-test=PotentialTest(4.0)
-test.plot(LJ_attract)
+#test=PotentialTest(4.0)
+#test.plot(SoftRepulsive)
+#test.plot(RepulsiveLJ)

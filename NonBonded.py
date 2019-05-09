@@ -8,6 +8,10 @@ def SoftRepulsive(r,rmin, rmax, sigma, epsilon):
     F = epsilon/sigma * 12 * (sigma/r) ** 13
     return (V, F)
 
+def RepulsiveLJ(r, rmin, rmax, sigma, epsilon):
+    V = epsilon * ((sigma/r)**12 - (sigma/r)**6)
+    F = epsilon / sigma * 12 * (sigma / r) ** 13
+    return (V, F)
 
 def LJ_attract(r, rmin, rmax, sigma, epsilon):
     x6 = (float(sigma)/r)**6
@@ -27,8 +31,8 @@ def normal_lj(r, rmin, rmax, sigma, epsilon):
 
 
 def Yukawa(r, rmin, rmax, kappa, A):
-    V = A*np.exp(-kappa*r)/r
-    F = V*(kappa*r)/r
+    V = A*np.exp(-kappa*r)/r + (1.0/r)**12
+    F = V*(kappa*r)/r + 12 * (1.0 / r) ** 13
     return (V, F)
 
 def yukawa_lj(r, rmin, rmax, sigma, epsilon, kappa, A):
@@ -46,7 +50,7 @@ class PotentialTest(object):
         self.x = np.arange(0.2, self.plot_range, 0.02)
         self.param = param
     def plot(self, funct):
-        vf = funct(self.x, 2, self.plot_range, 1.15, self.param)
+        vf = funct(self.x, 2, self.plot_range, 1.5, 0.5)
         y = vf[0]
         plt.plot(self.x, y)
         plt.plot(self.x, vf[1])

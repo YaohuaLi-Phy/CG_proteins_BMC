@@ -5,7 +5,7 @@ sys.path.append('/projects/b1021/Yaohua/cg_protein/new_rigid/')
 import hoomd
 import hoomd.md
 from Pentagon import PentagonBody
-from PduABody import PduABody
+from SoftHex import SoftHex
 from PduBBody import PduBBody
 from NonBonded import LJ_attract
 from NonBonded import *
@@ -21,7 +21,10 @@ no scaffold: set n_scaf to 0, it automatically takes care
 
 '''
 
-LOCAL = False
+try:
+    LOCAL = os.environ['LOCAL']
+except:
+    LOCAL = True
 anneal = True
 
 kp = 1.0
@@ -55,8 +58,8 @@ BMC = type('BMC', (object,), {})()
 
 edge_l = a
 BMC.angle = 15 * np.pi / 180
-hexamer1 = PduABody(edge_length=edge_l, angle=BMC.angle)
-hexamer2 = PduBBody(edge_length=edge_l, angle=BMC.angle)
+hexamer1 = SoftHex(edge_length=edge_l, angle=BMC.angle)
+
 pentamer = PentagonBody(edge_length=edge_l, angle=BMC.angle)
 
 template = SphericalTemplate(a)
@@ -69,21 +72,26 @@ except:
 BMC.filename = str(note) +'_n1_' + str(n_hex1) +'_nh2_' + str(n_hex2) + '_ee_' + str(mer_scaffold) + '_hh_' + str(
     mer_mer) + 'ph_'+str(pent_coeff) + '_' + str(rseed)
 
-sys = Lattice(pentamer, hexamer1, hexamer2, template, num_pen=n_pent, num_hex1=n_hex1, num_hex2=n_hex2, num_scaffold=n_scaf)
+sys = Lattice(pentamer, hexamer1, template, num_pen=n_pent, num_hex1=n_hex1, num_hex2=n_hex2, num_scaffold=n_scaf)
 
-uc = hoomd.lattice.unitcell(N=sys.num_body,
-                            a1=[(20+2.5*a), 0, 0],
-                            a2=[0, (20+2.5*a), 0],
-                            a3=[0, 0, sys.cell_height],
-                            dimensions=3,
-                            position=sys.position_list,
-                            type_name=sys.type_name_list,
-                            mass=sys.mass_list,
-                            moment_inertia=sys.moment_inertias,
-                            orientation=sys.orientation_list)
-system = hoomd.init.create_lattice(unitcell=uc, n=[5, 5, 5])
+num_particles = 10
+blx=10
+bly=10
+snapshot = hoomd.data.make_snapshot(N=num_particles, particle_types=hexamer1.type_list, box=hoomd.data.boxdim(Lx=blx, Ly=bly, Lz=bly))
+snapshot.box = hoomd.data.boxdim(Lx=blx, Ly=bly, Lz=bly, xy=0.0, xz=0.0, yz=0.0)  # elongated in x direction
 
-# Add constituent particles and create the rigid bodies
+for i in range(hexamer1.num_of_sites):
+    snapshot.particles.position[i] = hexamer1.body_sites[i]
+
+for i in range(hexamer1.num_of_bonds):
+    old_bond_num = len(snapshot.bonds)
+    snapshot.bonds.resize(old_bond_num + 1)
+    snapshot.bonds.group[i] = [] # a list from hexamer1 object containing bonds
+
+
+# Add constituent particles and create the spring connected protein
+
+
 
 added_types = ['A', 'B', 'C', 'D', 'qP', 'qN', 'C1', 'D1', 'Ss']
 if n_scaf > 0:

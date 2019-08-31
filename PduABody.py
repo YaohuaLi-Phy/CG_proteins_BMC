@@ -20,7 +20,7 @@ class PduABody(Body):
                 position = base1 * i + base2 * j
                 if -2.01 * l_spacing < position[1] - 0.5 * position[0] < 2.01 * l_spacing:
                     self.body_sites.append(tuple(position + base3))
-                    self.body_sites.append(tuple(radius_factor * position - 1.1*base3))
+                    self.body_sites.append(tuple(radius_factor * position - 1.0 * base3))
 
         self.hand_sites = []
         vertices = []
@@ -35,14 +35,17 @@ class PduABody(Body):
             vector = (vertices[i] - vertices[i - 1])
             self.binding_sites.append(list(2.1 * (vertices[i - 1] + vector * 0.3)))
             self.hand_sites.append(list(2.1 * (vertices[i - 1] + vector * 0.7)))
-            self.p_charge_sites.append(list(vertices[i])+0.5*base3)
-            self.scaffold_sites.append(list(vertices[i]-1.2*base3))
+            self.p_charge_sites.append(list(1.5 * vertices[i]) + 0.5 * base3)
+            self.n_charge_sites.append(list(1.5 * vertices[i]) - 0.5 * base3)
+            self.scaffold_sites.append(list(vertices[i] - 1.2 * base3))
 
-        self.all_sites = self.body_sites + self.hand_sites + self.binding_sites + self.p_charge_sites + self.scaffold_sites
+        self.all_sites = self.body_sites + self.hand_sites + self.binding_sites + self.p_charge_sites + \
+                         self.n_charge_sites + self.scaffold_sites
         self.type_list = ['B'] * len(self.body_sites) + \
                          ['C'] * len(self.hand_sites) + \
                          ['D'] * len(self.binding_sites) + \
                          ['qP'] * len(self.p_charge_sites) + \
-                        ['Ss'] * len(self.scaffold_sites)
-        self.types = ['B', 'C', 'D', 'qP', 'Ss']
+                         ['qN'] * len(self.n_charge_sites) + \
+                         ['Ss'] * len(self.scaffold_sites)
+        self.types = ['B', 'C', 'D', 'qP', 'qN', 'Ss']
         self.moment_of_inertia = [1, 1, 2]

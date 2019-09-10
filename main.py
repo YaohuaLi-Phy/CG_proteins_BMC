@@ -122,7 +122,7 @@ hoomd.dump.gsd(BMC.filename + "-initial.gsd", group=hoomd.group.all(), overwrite
 #sn.particles.resize(num_particle+1)
 
 # forcefield and integration
-lB = 1.0
+lB = 0
 
 z_q = 8.0
 A_yuka = z_q ** 2 * lB * (np.exp(kp * a) / (1 + kp * a)) ** 2
@@ -137,9 +137,9 @@ table.pair_coeff.set('C', 'D1', func=LJ_attract, rmin=0.01, rmax=3,
                      coeff=dict(sigma=1.0, epsilon=(pent_coeff * float(mer_mer))))
 table.pair_coeff.set('C1', 'D', func=LJ_attract, rmin=0.01, rmax=3,
                      coeff=dict(sigma=1.0, epsilon=(pent_coeff * float(mer_mer))))
-table.pair_coeff.set(['qP', 'C'], ['qP', 'C'], func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=5, kappa=kp))
-table.pair_coeff.set(['qP', 'C'], 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=-5, kappa=kp))
-table.pair_coeff.set('qN', 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=5, kappa=kp))
+table.pair_coeff.set(['qP', 'C'], ['qP', 'C'], func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=A_yuka, kappa=kp))  # A=5 for previous data
+table.pair_coeff.set(['qP', 'C'], 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=-A_yuka, kappa=kp))
+table.pair_coeff.set('qN', 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=A_yuka, kappa=kp))
 #table.pair_coeff.set('qN', 'qn', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=2, kappa=kp))
 #table.pair_coeff.set(['qP', 'C'], 'qn', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=-2, kappa=kp))
 
@@ -168,7 +168,7 @@ hoomd.dump.gsd(BMC.filename + ".gsd",
 
 hoomd.run(1e7)
 
-#hoomd.dump.gsd(BMC.filename + "mid1.gsd", group=hoomd.group.all(), overwrite=True, period=None)
+hoomd.dump.gsd(BMC.filename + "mid1.gsd", group=hoomd.group.all(), overwrite=True, period=None)
 if anneal:
     temp_sequence = [1.05, 1.1, 1.15, 1.1, 1.05, 1.0]
     for temp in temp_sequence:
@@ -186,5 +186,5 @@ if anneal:
         hoomd.run(2e6)
 hoomd.run(1e7)
 
-hoomd.dump.gsd(BMC.filename + "mid3.gsd", group=hoomd.group.all(), overwrite=True, period=None)
+#hoomd.dump.gsd(BMC.filename + "mid3.gsd", group=hoomd.group.all(), overwrite=True, period=None)
 hoomd.dump.gsd(BMC.filename + "final-frame.gsd", group=hoomd.group.all(), overwrite=True, period=None)

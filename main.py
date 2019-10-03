@@ -21,7 +21,7 @@ no scaffold: set n_scaf to 0, it automatically takes care
 
 '''
 
-LOCAL = False
+LOCAL = True
 anneal = True
 
 kp = 1.0
@@ -38,6 +38,7 @@ if LOCAL:
     pent_coeff = 0.85
     a = 2.5
     note = 'local_model'
+    lB = 0.7
 
 else:
     note = os.environ['NOTE']
@@ -51,6 +52,7 @@ else:
     n_pent = int(os.environ['N_pent'])
     pent_coeff = float(os.environ['pent_c'])
     a = float(os.environ['RADIUS'])
+    lB = float(os.environ['lB'])
 BMC = type('BMC', (object,), {})()
 
 edge_l = a
@@ -66,7 +68,7 @@ try:
 except:
     n_hex2 = 1
 
-BMC.filename = str(note) +'_n1_' + str(n_hex1) +'_nh2_' + str(n_hex2) + '_ee_' + str(mer_scaffold) + '_hh_' + str(
+BMC.filename = str(note) +'_n1_' + str(n_hex1) +'_nh2_' + str(n_hex2) +'_'+str(n_pent)+ '_ee_' + str(mer_scaffold) + '_hh_' + str(
     mer_mer) + 'ph_'+str(pent_coeff) + '_' + str(rseed)
 
 sys = Lattice(pentamer, hexamer1, hexamer2, template, num_pen=n_pent, num_hex1=n_hex1, num_hex2=n_hex2, num_scaffold=n_scaf)
@@ -81,7 +83,7 @@ uc = hoomd.lattice.unitcell(N=sys.num_body,
                             mass=sys.mass_list,
                             moment_inertia=sys.moment_inertias,
                             orientation=sys.orientation_list)
-system = hoomd.init.create_lattice(unitcell=uc, n=[5, 5, 5])
+system = hoomd.init.create_lattice(unitcell=uc, n=[4, 4, 3])
 
 # Add constituent particles and create the rigid bodies
 
@@ -122,9 +124,8 @@ hoomd.dump.gsd(BMC.filename + "-initial.gsd", group=hoomd.group.all(), overwrite
 #sn.particles.resize(num_particle+1)
 
 # forcefield and integration
-lB = 0
 
-z_q = 8.0
+z_q = 0.80
 A_yuka = z_q ** 2 * lB * (np.exp(kp * a) / (1 + kp * a)) ** 2
 
 nl = hoomd.md.nlist.cell()

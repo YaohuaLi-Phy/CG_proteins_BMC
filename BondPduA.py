@@ -43,6 +43,8 @@ class BondPduA(Body):
         self.num_body = len(self.body_sites)
         self.num_hand = len(self.hand_sites)
         self.num_bind = len(self.binding_sites)
+        self.num_posi = len(self.p_charge_sites)
+        self.num_nega = len(self.n_charge_sites)
         self.bond_list = []
         self.num_of_sites = len(self.all_sites)
         i = 0

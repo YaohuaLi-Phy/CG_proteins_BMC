@@ -45,15 +45,19 @@ class BondPduA(Body):
         self.num_bind = len(self.binding_sites)
         self.num_posi = len(self.p_charge_sites)
         self.num_nega = len(self.n_charge_sites)
-        self.bond_list = []
+        self.bond_list = []  # bond_list is a list of numpy lists (pairs) containing the system index of bonded
+        # particles in unit cell
         self.num_of_sites = len(self.all_sites)
         i = 0
         j = 0
         r_cut = 2.5
         for i in range(self.num_of_sites-1):
             for j in range(i+1, self.num_of_sites):
-                point = self.all_sites[i]
-                friend = self.all_sites[j]
+                point = np.array(self.all_sites[i])
+                friend = np.array(self.all_sites[j])
                 if np.linalg.norm(point - friend) < r_cut:
                     self.bond_list.append([i, j])
+
+        self.num_of_bonds = len(self.bond_list)
+        self.types = ['B', 'C', 'D', 'qP', 'qN', 'Ss']
 

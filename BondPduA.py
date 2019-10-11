@@ -50,7 +50,7 @@ class BondPduA(Body):
         self.num_of_sites = len(self.all_sites)
         i = 0
         j = 0
-        r_cut = 2.5
+        r_cut = 1.4
         for i in range(self.num_of_sites-1):
             for j in range(i+1, self.num_of_sites):
                 point = np.array(self.all_sites[i])

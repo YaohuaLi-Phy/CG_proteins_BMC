@@ -66,7 +66,7 @@ hexamer1 = BondPduA(edge_length=edge_l, angle=BMC.angle)
 try:
     n_hex2 = int(os.environ['N_HEX2'])
 except:
-    n_hex2 = 1
+    n_hex2 = 0
 
 BMC.filename = str(note) +'_n1_' + str(n_hex1) +'_nh2_' + str(n_hex2) + '_ee_' + str(mer_scaffold) + '_hh_' + str(
     mer_mer) + 'ph_'+str(pent_coeff) + '_' + str(rseed)

@@ -36,7 +36,7 @@ mer_scaffold = os.environ['MER_TEMP']
 scaffold_scaffold = os.environ['TEMP_TEMP']
 
 edge_l = 2.5
-BMC.angle = 15 * np.pi/180
+BMC.angle = 25 * np.pi/180
 hexamer1 = PduABody(edge_length=edge_l, angle=BMC.angle)
 hexamer2 = PduBBody(edge_length=edge_l, angle=BMC.angle)
 pentamer = PentagonBody(edge_length=edge_l, angle=BMC.angle)
@@ -67,7 +67,7 @@ system = hoomd.init.create_lattice(unitcell=uc, n=[4, 4, 4])
 
 # Add constituent particles of type A and create the rods
 
-added_types = ['A', 'B', 'C', 'D', 'qP', 'qN', 'C1', 'D1', 'Ss']  # types to be added to the system
+added_types = ['A', 'B', 'C', 'D', 'qP', 'qN', 'C1','C2', 'D1', 'Ss']  # types to be added to the system
 system_types = ['R', 'P', 'R2'] + added_types  # types to define forcefield
 if n_scaf > 0:
     system_types += ['H', 'Sc']

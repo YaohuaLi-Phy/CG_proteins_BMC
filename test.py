@@ -26,6 +26,6 @@ print A_yuka
 
 #temp = PeanutTemplate(2.5)
 #temp.plot_position()
-#test=PotentialTest(4.0)
-#test.plot(LJ_attract)
+test=PotentialTest(4.0)
+test.plot(LJ_attract)
 #test.plot(RepulsiveLJ)

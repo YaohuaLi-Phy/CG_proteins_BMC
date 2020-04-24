@@ -12,6 +12,7 @@ mpl.rcParams['axes.titlesize'] = 18
 mpl.rcParams['xtick.labelsize'] = 18
 mpl.rcParams['ytick.labelsize'] = 18
 
+
 def SoftRepulsive(r,rmin, rmax, sigma, epsilon):
 
     V = epsilon * ((sigma / r) ** 12 - 0.5 ** 12)
@@ -23,12 +24,12 @@ def RepulsiveLJ(r, rmin, rmax, sigma, epsilon):
     F = epsilon / sigma * 12 * (sigma / r) ** 13
     return (V, F)
 
-def LJ_attract(r, rmin, rmax, epsilon, sigma):
+def LJ_attract(r, rmin, rmax, epsilon, sigma, r0):
     x6 = (float(sigma)/r)**6
     xmax6 = (sigma/float(rmax))**6
     mod_factor = 0.8
-    V = epsilon * ((x6**2-x6) - (xmax6**2-xmax6) - mod_factor * np.exp(-(r-1.2*sigma)**2/(0.3*sigma**2)))
-    F = epsilon/r * (12 * x6**2 - 6 * x6) - epsilon * mod_factor * np.exp(-(r-1.2*sigma)**2/(0.3*sigma**2)) *2*(r-1.2*sigma)/(0.3*sigma**2)
+    V = epsilon * ((x6**2-x6) - (xmax6**2-xmax6) - mod_factor * np.exp(-(r-r0*sigma)**2/(0.3*sigma**2)))
+    F = epsilon/r * (12 * x6**2 - 6 * x6) - epsilon * mod_factor * np.exp(-(r-r0*sigma)**2/(0.3*sigma**2)) *2*(r-r0*sigma)/(0.3*sigma**2)
     return (V, F)
 
 
@@ -62,8 +63,8 @@ class PotentialTest(object):
         self.param = param
 
     def plot(self, funct):
-        vf = funct(self.x, 1, self.plot_range, 4, 1.0)
-        y = vf[0]*2/1.68
+        vf = funct(self.x, 1, self.plot_range, 3.0, 1.0, 1.2)
+        y = vf[0]
         plt.plot(self.x, y)
         #plt.plot(self.x, vf[1])
         plt.ylim(-10, 10)

@@ -40,9 +40,9 @@ class PduBBody(Body):
 
         self.all_sites = self.body_sites + self.hand_sites + self.binding_sites + self.n_charge_sites + self.scaffold_sites
         self.type_list = ['B'] * len(self.body_sites) + \
-                         ['C'] * len(self.hand_sites) + \
-                         ['D'] * len(self.binding_sites) + \
+                         ['C2'] * len(self.hand_sites) + \
+                         ['D2'] * len(self.binding_sites) + \
                          ['qN'] * len(self.n_charge_sites) + \
                         ['Ss'] * len(self.scaffold_sites)
-        self.types = ['B', 'C', 'D', 'qN', 'Ss']
+        self.types = ['B', 'C2', 'D2', 'qN', 'Ss']
         self.moment_of_inertia = [2, 2, 3]

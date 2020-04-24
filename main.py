@@ -21,7 +21,7 @@ no scaffold: set n_scaf to 0, it automatically takes care
 
 '''
 
-LOCAL = True
+LOCAL = False
 anneal = True
 
 kp = 1.0
@@ -44,7 +44,7 @@ else:
     note = os.environ['NOTE']
     hoomd.context.initialize("--mode=gpu")
     rseed = os.environ['RSEED']
-    mer_mer = os.environ['MERMER']
+    mer_mer = float(os.environ['MERMER'])
     mer_scaffold = os.environ['MER_TEMP']
     scaffold_scaffold = os.environ['TEMP_TEMP']
     n_hex1 = int(os.environ['N_HEX1'])
@@ -52,11 +52,17 @@ else:
     n_pent = int(os.environ['N_pent'])
     pent_coeff = float(os.environ['pent_c'])
     a = float(os.environ['RADIUS'])
+    angle = float(os.environ['angle'])
     lB = float(os.environ['lB'])
+    hand_l=float(os.environ['r0'])
+    try:
+        coeff_b = float(os.environ['B_factor'])
+    except:
+        coeff_b = 1.0
 BMC = type('BMC', (object,), {})()
 
 edge_l = a
-BMC.angle = 15 * np.pi / 180
+BMC.angle = angle * np.pi / 180
 hexamer1 = PduABody(edge_length=edge_l, angle=BMC.angle)
 hexamer2 = PduBBody(edge_length=edge_l, angle=BMC.angle)
 pentamer = PentagonBody(edge_length=edge_l, angle=BMC.angle)
@@ -83,14 +89,16 @@ uc = hoomd.lattice.unitcell(N=sys.num_body,
                             mass=sys.mass_list,
                             moment_inertia=sys.moment_inertias,
                             orientation=sys.orientation_list)
-system = hoomd.init.create_lattice(unitcell=uc, n=[4, 4, 3])
+system = hoomd.init.create_lattice(unitcell=uc, n=[5, 5, 5])
 
 # Add constituent particles and create the rigid bodies
 
-added_types = ['A', 'B', 'C', 'D', 'qP', 'qN', 'C1', 'D1', 'Ss']
+added_types = ['A', 'B', 'C', 'D', 'qP', 'qN', 'C1', 'D1', 'Ss', 'C2', 'D2']
 if n_scaf > 0:
     added_types += ['Sc']
-system_types = ['R'] + added_types
+system_types = added_types
+if n_hex1 > 0:
+    system_types += ['R']
 if n_hex2 > 0:
     system_types += ['R2']
 if n_pent > 0:
@@ -103,7 +111,8 @@ for new_type in added_types:
 print(system.particles.types)
 rigid = hoomd.md.constrain.rigid()
 
-rigid.set_param('R', types=hexamer1.type_list, positions=hexamer1.all_sites)
+if n_hex1 > 0:
+    rigid.set_param('R', types=hexamer1.type_list, positions=hexamer1.all_sites)
 if n_scaf > 0:
     rigid.set_param('H', types=template.type_list, positions=template.position)
 
@@ -133,11 +142,15 @@ table = hoomd.md.pair.table(width=1000, nlist=nl)
 table.pair_coeff.set(system_types, system_types, func=SoftRepulsive, rmin=0.01, rmax=3,
                      coeff=dict(sigma=1, epsilon=1.0))
 table.pair_coeff.set('Sc', system_types, func=SoftRepulsive, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=0.5))
-table.pair_coeff.set('C', 'D', func=LJ_attract, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(mer_mer)))
-table.pair_coeff.set('C', 'D1', func=LJ_attract, rmin=0.01, rmax=3,
-                     coeff=dict(sigma=1.0, epsilon=(pent_coeff * float(mer_mer))))
-table.pair_coeff.set('C1', 'D', func=LJ_attract, rmin=0.01, rmax=3,
-                     coeff=dict(sigma=1.0, epsilon=(pent_coeff * float(mer_mer))))
+
+table.pair_coeff.set('C', 'D', func=LJ_attract, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(mer_mer), r0=hand_l))
+table.pair_coeff.set('C2', 'D2', func=LJ_attract, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(coeff_b*float(mer_mer)), r0=hand_l))
+table.pair_coeff.set('C2', 'D', func=LJ_attract, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(0.5*(1.0+coeff_b)*(mer_mer)), r0=hand_l))
+table.pair_coeff.set('C', 'D2', func=LJ_attract, rmin=0.01, rmax=3, coeff=dict(sigma=1.0, epsilon=float(0.5*(1.0+coeff_b)*(mer_mer)), r0=hand_l))
+table.pair_coeff.set(['C', 'C2'], 'D1', func=LJ_attract, rmin=0.01, rmax=3,
+                     coeff=dict(sigma=1.0, epsilon=(pent_coeff * float(mer_mer)), r0=hand_l))
+table.pair_coeff.set('C1', ['D', 'D2'], func=LJ_attract, rmin=0.01, rmax=3,
+                     coeff=dict(sigma=1.0, epsilon=(pent_coeff * float(mer_mer)), r0=hand_l))
 table.pair_coeff.set(['qP', 'C'], ['qP', 'C'], func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=A_yuka, kappa=kp))  # A=5 for previous data
 table.pair_coeff.set(['qP', 'C'], 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=-A_yuka, kappa=kp))
 table.pair_coeff.set('qN', 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=A_yuka, kappa=kp))
@@ -146,19 +159,19 @@ table.pair_coeff.set('qN', 'qN', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=A_
 
 if n_scaf > 0:
     table.pair_coeff.set('Sc', 'Sc', func=yukawa_lj, rmin=0.01, rmax=3,
-                         coeff=dict(sigma=1.0, epsilon=float(scaffold_scaffold), A=1.20, kappa=kp))
+                         coeff=dict(sigma=1.0, epsilon=float(scaffold_scaffold), A=A_yuka, kappa=kp))
     #table.pair_coeff.set('qn', 'qn', func=Yukawa, rmin=0.01, rmax=3, coeff=dict(A=1, kappa=kp))
     table.pair_coeff.set('Sc', 'Ss', func=normal_lj, rmin=0.01, rmax=3,
                          coeff=dict(sigma=1.0, epsilon=float(mer_scaffold)))
 
-hoomd.md.integrate.mode_standard(dt=0.004)
+hoomd.md.integrate.mode_standard(dt=0.003)
 rigid = hoomd.group.rigid_center()
 integrator = hoomd.md.integrate.langevin(group=rigid, kT=1.0, seed=int(rseed))
 
 hoomd.analyze.log(filename=BMC.filename + ".log",
                   quantities=['temperature', 'potential_energy',
                               'translational_kinetic_energy',
-                              'rotational_kinetic_energy'],
+                              'rotational_kinetic_energy','pair_table_energy'],
                   period=10000,
                   overwrite=True)
 

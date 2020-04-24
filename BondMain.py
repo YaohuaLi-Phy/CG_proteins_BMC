@@ -124,20 +124,24 @@ hoomd.md.integrate.mode_standard(dt=0.003)
 harmonic = hoomd.md.bond.harmonic(name='harmonic')
 harmonic.bond_coeff.set('harmonic', k=200, r0=2.0)
 ALL = hoomd.group.all()
-integrator = hoomd.md.integrate.langevin(group=ALL, kT=1.0, seed=int(rseed))
+integrator = hoomd.md.integrate.nve(group=ALL, limit=0.01)
+
 
 hoomd.analyze.log(filename=BMC.filename + ".log",
                   quantities=['temperature', 'potential_energy',
                               'translational_kinetic_energy',
                               'rotational_kinetic_energy'],
-                  period=10000,
+                  period=10,
                   overwrite=True)
 
 hoomd.dump.gsd(BMC.filename + ".gsd",
-               period=2e5,
+               period=10,
                group=hoomd.group.all(),
                overwrite=True)
 
+hoomd.run(1e4)
+integrator = hoomd.md.integrate.langevin(group=ALL, kT=1.0, seed=int(rseed))
+integrator.disable()
 hoomd.run(1e7)
 
 #hoomd.dump.gsd(BMC.filename + "mid1.gsd", group=hoomd.group.all(), overwrite=True, period=None)

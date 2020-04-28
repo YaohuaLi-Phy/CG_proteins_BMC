@@ -1,9 +1,7 @@
 from  __future__ import division
-import hoomd
-import hoomd.md
 from Pentagon import PentagonBody
 from PduABody import PduABody
-from NonBonded import LJ_attract
+from NonBonded import LJ_finite
 from NonBonded import SoftRepulsive
 from NonBonded import Yukawa
 from Solution import Lattice
@@ -22,10 +20,10 @@ lB = 1.0
 kp = 1.1
 z_q = 0.8
 A_yuka = z_q**2 * lB * (np.exp(kp*a)/(1+kp*a))**2
-print A_yuka
+print(A_yuka)
 
 #temp = PeanutTemplate(2.5)
 #temp.plot_position()
-test=PotentialTest(4.0)
-test.plot(LJ_attract)
+test=PotentialTest()
+test.plot(LJ_finite)
 #test.plot(RepulsiveLJ)

@@ -63,7 +63,7 @@ BMC = type('BMC', (object,), {})()
 
 edge_l = a
 BMC.angle = angle * np.pi / 180
-hexamer1 = PduABody(edge_length=edge_l, angle=BMC.angle)
+hexamer1 = PduABody(edge_length=edge_l, angle=BMC.angle, tilt=30)
 hexamer2 = PduBBody(edge_length=edge_l, angle=BMC.angle)
 pentamer = PentagonBody(edge_length=edge_l, angle=BMC.angle)
 

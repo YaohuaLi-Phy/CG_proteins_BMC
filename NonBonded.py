@@ -55,22 +55,29 @@ def yukawa_lj(r, rmin, rmax, sigma, epsilon, kappa, A):
     return (V, F)
 
 
+def LJ_finite(r, rmin, rmax, epsilon, sigma):
+    sigmoid = 1/(1+np.exp(-20*(r-0.8*sigma)))
+    ri2 = (sigma / r) * (sigma / r)
+    sig_r_delta6 = ri2 * ri2 * ri2
+    shift = 4 * epsilon * ((sigma/rmax)**12 - (sigma/rmax)**6)/(1+np.exp(-10*(rmax-0.9)))
+    potential = 4 * epsilon * (sig_r_delta6 * sig_r_delta6 - sig_r_delta6)*sigmoid-shift
+    f = 4 * epsilon / r * (12 * sig_r_delta6 * (sig_r_delta6 - 0.5))*sigmoid
+
+    return (potential, f)
+
 class PotentialTest(object):
 
-    def __init__(self, param):
-        self.plot_range = 5
-        self.x = np.arange(0.2, self.plot_range, 0.02)
-        self.param = param
+    def __init__(self):
+        self.plot_range = 1.12
+        self.x = np.arange(0.2, self.plot_range, 0.01)
 
     def plot(self, funct):
-        vf = funct(self.x, 1, self.plot_range, 3.0, 1.0, 1.2)
+        vf = funct(self.x, 0.1, self.plot_range, 1.0, 1.0)
         y = vf[0]
         plt.plot(self.x, y)
         #plt.plot(self.x, vf[1])
-        plt.ylim(-10, 10)
+        plt.ylim(-1, 1000)
         plt.xlabel('distance (nm)')
         plt.ylabel('potential (kTCal/mol)')
         #plt.grid()
         plt.show()
-
-

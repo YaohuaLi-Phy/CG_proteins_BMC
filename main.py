@@ -5,7 +5,7 @@ sys.path.append('/projects/b1021/Yaohua/cg_protein/new_rigid/')
 import hoomd
 import hoomd.md
 from Pentagon import PentagonBody
-from PduABody import PduABody
+from TwistedPduABody import TwistedPduABody
 from PduBBody import PduBBody
 from NonBonded import LJ_attract
 from NonBonded import *
@@ -63,7 +63,7 @@ BMC = type('BMC', (object,), {})()
 
 edge_l = a
 BMC.angle = angle * np.pi / 180
-hexamer1 = PduABody(edge_length=edge_l, angle=BMC.angle, tilt=30)
+hexamer1 = TwistedPduABody(edge_length=edge_l, angle=BMC.angle, twist=float(os.environ['twist']))
 hexamer2 = PduBBody(edge_length=edge_l, angle=BMC.angle)
 pentamer = PentagonBody(edge_length=edge_l, angle=BMC.angle)
 

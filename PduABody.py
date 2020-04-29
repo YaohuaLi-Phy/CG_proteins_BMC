@@ -3,11 +3,11 @@ import numpy as np
 from Body import Body
 
 
-class PduABody(Body):
+class TwistedPduABody(Body):
     """ PduA protein"""
 
-    def __init__(self, edge_length=3.0, angle=0):
-        super(PduABody, self).__init__()
+    def __init__(self, edge_length=3.0, angle=0, twist=0):
+        super(TwistedPduABody, self).__init__()
         l_spacing = edge_length / 2.0
         self.edge_l = edge_length
         height = 0.2 * edge_length
@@ -15,6 +15,8 @@ class PduABody(Body):
         base1 = l_spacing * np.array([0, 1, 0])
         base2 = l_spacing * np.array([np.sqrt(3) / 2.0, -0.5, 0])
         base3 = height * np.array([0, 0, 1])
+        d = 0.4 * edge_length * 1.05
+        h = d * np.sin(twist/180*np.pi)
         for i in range(-2, 3):
             for j in range(-2, 3):
                 position = base1 * i + base2 * j
@@ -33,7 +35,7 @@ class PduABody(Body):
         vertices.append(-base2)
         for i in range(len(vertices)):
             vector = (vertices[i] - vertices[i - 1])
-            self.binding_sites.append(list(2.1 * (vertices[i - 1] + vector * 0.3)))
+            self.binding_sites.append(list(2.1 * (vertices[i - 1] + vector * 0.3)) + d * base3)
             self.hand_sites.append(list(2.1 * (vertices[i - 1] + vector * 0.7)))
             self.p_charge_sites.append(list(1.5 * vertices[i]) + 0.5 * base3)
             self.n_charge_sites.append(list(1.5 * vertices[i]) - 0.5 * base3)

@@ -1,7 +1,7 @@
 import sys
 
 sys.path.append('/projects/b1030/hoomd/hoomd-2.5.1/')
-sys.path.append('/projects/b1021/Yaohua/cg_protein/new_rigid/')
+sys.path.append('/projects/b1021/Yaohua/cg_protein/rigid2/new_rigid/')
 import hoomd
 import hoomd.md
 from Pentagon import PentagonBody

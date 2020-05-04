@@ -12,6 +12,7 @@ class PduABody(Body):
         self.edge_l = edge_length
         height = 0.2 * edge_length
         radius_factor = 1 - angle * 0.82 / np.sqrt(3)
+	mid_radius_factor = (1+radius_factor)/2.0
         base1 = l_spacing * np.array([0, 1, 0])
         base2 = l_spacing * np.array([np.sqrt(3) / 2.0, -0.5, 0])
         base3 = height * np.array([0, 0, 1])
@@ -35,8 +36,8 @@ class PduABody(Body):
         vertices.append(-base2)
         for i in range(len(vertices)):
             vector = (vertices[i] - vertices[i - 1])
-            self.binding_sites.append(list(2.1 * radius_factor/2 * (vertices[i - 1] + vector * 0.3)) + h * base3)
-            self.hand_sites.append(list(2.1 * radius_factor/2*(vertices[i - 1] + vector * 0.7)))
+            self.binding_sites.append(list(2.1 * mid_radius_factor * (vertices[i - 1] + vector * 0.3)) + h * base3)
+            self.hand_sites.append(list(2.1 * mid_radius_factor *(vertices[i - 1] + vector * 0.7)))
             self.p_charge_sites.append(list(1.5 * vertices[i]) + 0.5 * base3)
             self.n_charge_sites.append(list(1.5 * vertices[i]) - 0.5 * base3)
             self.scaffold_sites.append(list(vertices[i] - 1.2 * base3))
